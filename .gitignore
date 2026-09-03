@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+runtime/
+receipts/
+logs/
+*.log
+*.jsonl
+.DS_Store
