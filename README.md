@@ -19,6 +19,24 @@ The original memo is written deterministically before evaluation. Evaluation fai
 - `tests/` — stdlib-only writer and plugin-helper smoke tests
 - `.github/workflows/ci.yml` — GitHub Actions validation workflow
 
+## Hermes-owned layout
+
+The canonical project source lives under the active Hermes Home, not under the
+OpenClaw workspace and not inside the upstream Hermes source checkout:
+
+```text
+$HERMES_HOME/projects/obsidian-memo-capture/       # canonical Git project
+$HERMES_HOME/plugins/obsidian-memo-capture ->      # runtime plugin link
+  ../projects/obsidian-memo-capture/plugin
+$HERMES_HOME/skills/note-taking/obsidian-memos ->  # runtime Skill link
+  ../../projects/obsidian-memo-capture/skill
+$HERMES_HOME/runtime/obsidian-memo-capture/        # receipts/runtime state
+```
+
+Keep source, runtime links, and receipts in these separate boundaries. Do not
+copy vault data, receipts, logs, credentials, or generated files into the Git
+project.
+
 ## Install locally
 
 Copy or symlink the two runtime directories:

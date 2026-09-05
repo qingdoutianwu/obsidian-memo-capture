@@ -18,6 +18,12 @@ Telegram text with an explicit `memo:`, `备忘：`, `lesson:`, or `todo:` prefi
 - Writer: `skill/scripts/capture_memo.py`
 - Destination: `<vault>/OpenClaw远程笔记/{memos,lessons,todos}/YYYYMMDD.md` (preserved Obsidian data layout; not an OpenClaw runtime dependency)
 
+## Hermes project metadata
+
+Registered Hermes Project: `obsidian-memo-capture` (`p_934c888e`). The primary
+folder is this canonical Git checkout. Runtime plugin and Skill entries are
+symlinks into this project; receipts remain under `$HERMES_HOME/runtime/`.
+
 ## Verification
 
 ```bash
