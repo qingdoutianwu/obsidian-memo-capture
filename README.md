@@ -2,6 +2,8 @@
 
 A standalone Hermes Agent plugin and skill that turns explicit Telegram memo messages into local Obsidian notes, then replies with a short LLM evaluation.
 
+This project is Hermes-owned. It does not require OpenClaw at runtime or as a development dependency.
+
 ## Flow
 
 ```text
@@ -30,7 +32,7 @@ hermes config set plugins.entries.obsidian-memo-capture.settings.vault_path "$HO
 hermes gateway restart
 ```
 
-The plugin uses `<vault>/OpenClaw远程笔记/{memos,lessons,todos}/YYYYMMDD.md` to preserve the existing vault layout. Change the configured vault path for another vault.
+The plugin uses `<vault>/Memos/{memos,lessons,todos}/YYYYMMDD.md` to preserve the existing vault layout. The default folder name `Memos` is a compatibility label for notes created by the retired system; it does not require OpenClaw. Change the configured vault path for another vault.
 
 ## Message prefixes
 

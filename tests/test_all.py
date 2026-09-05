@@ -81,14 +81,14 @@ def test_writer_behavior() -> None:
         vault = Path(directory)
         preview = run(vault, "--folder", "memos", "--content", "测试 😀\n第二行", "--dry-run")
         assert preview["ok"] is True and preview["written"] is False
-        assert not (vault / "OpenClaw远程笔记").exists()
+        assert not (vault / "Memos").exists()
         body = "第一行\n第二行 *markdown* 😀"
         result = run(vault, "--folder", "memos", "--content", body, "--timestamp", "2026-08-29T12:34:56")
         assert result["written"] is True
         assert Path(result["path"]).read_text(encoding="utf-8") == "- [12:34] " + body + "\n"
         run(vault, "--folder", "lessons", "--content", "a", "--timestamp", "2026-08-29T12:00:00")
         run(vault, "--folder", "lessons", "--content", "b", "--timestamp", "2026-08-29T12:01:00")
-        lessons = vault / "OpenClaw远程笔记/lessons/20260829.md"
+        lessons = vault / "Memos/lessons/20260829.md"
         assert lessons.read_text(encoding="utf-8") == "- [12:00] a\n- [12:01] b\n"
 
 

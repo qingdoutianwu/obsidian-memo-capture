@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compile Python
-        run: python -m py_compile plugin/__init__.py skill/scripts/capture_memo.py tests/test_plugin_helpers.py
+        run: python -m py_compile plugin/__init__.py skill/scripts/capture_memo.py tests/test_all.py tests/test_capture_memo.py tests/test_plugin_helpers.py
       - name: Run tests
         run: python tests/test_all.py
       - name: Install manifest validator
