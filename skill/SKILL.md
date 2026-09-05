@@ -22,9 +22,9 @@ Use this skill when the user explicitly asks to save a `memo`, `lesson`, or `tod
 
 ## When to Use
 
-- `memo:` / `memo：` / `备忘：` / `记录：` → `Memos/memos/`
-- `lesson:` / `lesson：` / `教训：` → `Memos/lessons/`
-- `todo:` / `todo：` / `待办：` → `Memos/todos/`
+- `memo:` / `memo：` / `备忘：` / `记录：` → `OpenClaw远程笔记/memos/`
+- `lesson:` / `lesson：` / `教训：` → `OpenClaw远程笔记/lessons/`
+- `todo:` / `todo：` / `待办：` → `OpenClaw远程笔记/todos/`
 - A request such as “写入 memo” with an explicitly supplied memo body.
 
 Do not use this skill for ordinary conversation, workspace memory, or OneDrive mirror maintenance.
@@ -33,7 +33,7 @@ Do not use this skill for ordinary conversation, workspace memory, or OneDrive m
 
 - The configured vault path must exist or be creatable.
 - The skill uses only the local filesystem and Python standard library.
-- The destination is `<vault>/Memos/<folder>/YYYYMMDD.md`.
+- The destination is `<vault>/OpenClaw远程笔记/<folder>/YYYYMMDD.md`. The folder name is a preserved Obsidian data-layout label, not a runtime dependency.
 
 ## Behavior
 

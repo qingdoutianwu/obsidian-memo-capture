@@ -51,7 +51,7 @@ def main() -> int:
         return 2
 
     vault = pathlib.Path(os.path.expanduser(args.vault)).resolve()
-    destination = vault / "Memos" / args.folder
+    destination = vault / "OpenClaw远程笔记" / args.folder
     timestamp = dt.datetime.fromisoformat(args.timestamp) if args.timestamp else dt.datetime.now()
     path = destination / f"{timestamp:%Y%m%d}.md"
     line = f"- [{timestamp:%H:%M}] {content}\n"

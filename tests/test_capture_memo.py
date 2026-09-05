@@ -22,7 +22,7 @@ def test_dry_run_is_side_effect_free(tmp_path: Path) -> None:
     result = run(tmp_path, "--folder", "memos", "--content", "测试 😀\n第二行", "--dry-run")
     assert result["ok"] is True
     assert result["written"] is False
-    assert not (tmp_path / "Memos").exists()
+    assert not (tmp_path / "OpenClaw远程笔记").exists()
 
 
 def test_capture_preserves_multiline_body(tmp_path: Path) -> None:
@@ -42,5 +42,5 @@ def test_capture_preserves_multiline_body(tmp_path: Path) -> None:
 def test_capture_appends_without_overwrite(tmp_path: Path) -> None:
     run(tmp_path, "--folder", "lessons", "--content", "a", "--timestamp", "2026-08-29T12:00:00")
     run(tmp_path, "--folder", "lessons", "--content", "b", "--timestamp", "2026-08-29T12:01:00")
-    path = tmp_path / "Memos" / "lessons" / "20260829.md"
+    path = tmp_path / "OpenClaw远程笔记" / "lessons" / "20260829.md"
     assert path.read_text(encoding="utf-8") == "- [12:00] a\n- [12:01] b\n"

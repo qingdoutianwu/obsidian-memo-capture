@@ -16,7 +16,7 @@ Telegram text with an explicit `memo:`, `备忘：`, `lesson:`, or `todo:` prefi
 - Vault setting: `plugins.entries.obsidian-memo-capture.settings.vault_path`
 - Receipt root: `$HERMES_HOME/runtime/obsidian-memo-capture/receipts/`
 - Writer: `skill/scripts/capture_memo.py`
-- Destination: `<vault>/Memos/{memos,lessons,todos}/YYYYMMDD.md`
+- Destination: `<vault>/OpenClaw远程笔记/{memos,lessons,todos}/YYYYMMDD.md` (preserved Obsidian data layout; not an OpenClaw runtime dependency)
 
 ## Verification
 

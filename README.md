@@ -32,7 +32,7 @@ hermes config set plugins.entries.obsidian-memo-capture.settings.vault_path "$HO
 hermes gateway restart
 ```
 
-The plugin uses `<vault>/Memos/{memos,lessons,todos}/YYYYMMDD.md` to preserve the existing vault layout. The default folder name `Memos` is a compatibility label for notes created by the retired system; it does not require OpenClaw. Change the configured vault path for another vault.
+The plugin uses the preserved Obsidian path `<vault>/OpenClaw远程笔记/{memos,lessons,todos}/YYYYMMDD.md`. This folder name is historical vault data layout only; the runtime, plugin, and project are Hermes-owned and do not depend on OpenClaw. Change the configured vault path for another vault.
 
 ## Message prefixes
 
