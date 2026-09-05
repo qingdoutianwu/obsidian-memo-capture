@@ -39,16 +39,27 @@ project.
 
 ## Install locally
 
-Copy or symlink the two runtime directories:
+From a clone of this repository, register the project as the canonical Hermes
+Project and link the runtime boundaries to it:
 
 ```bash
-mkdir -p ~/.hermes/plugins ~/.hermes/skills/note-taking
-cp -R plugin ~/.hermes/plugins/obsidian-memo-capture
-cp -R skill ~/.hermes/skills/note-taking/obsidian-memos
+HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+PROJECT="$HERMES_HOME/projects/obsidian-memo-capture"
+mkdir -p "$HERMES_HOME/projects" "$HERMES_HOME/plugins" "$HERMES_HOME/skills/note-taking"
+hermes project create "Obsidian Memo Capture" "$PROJECT" \
+  --slug obsidian-memo-capture --primary "$PROJECT" --use
+ln -sfn "$PROJECT/plugin" "$HERMES_HOME/plugins/obsidian-memo-capture"
+ln -sfn "$PROJECT/skill" "$HERMES_HOME/skills/note-taking/obsidian-memos"
 hermes plugins enable obsidian-memo-capture
+hermes config set plugins.entries.obsidian-memo-capture.enabled true
 hermes config set plugins.entries.obsidian-memo-capture.settings.vault_path "$HOME/Documents/NOTE240925_clean1"
 hermes gateway restart
 ```
+
+Do not use `cp -R` for the production runtime: it creates a second mutable
+copy outside the canonical project and can cause the plugin and Skill to drift.
+For an existing Hermes installation, verify the symlink targets before
+replacing them and back up any non-symlink directory first.
 
 The plugin uses the preserved Obsidian path `<vault>/OpenClaw远程笔记/{memos,lessons,todos}/YYYYMMDD.md`. This folder name is historical vault data layout only; the runtime, plugin, and project are Hermes-owned and do not depend on OpenClaw. Change the configured vault path for another vault.
 

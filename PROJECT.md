@@ -20,9 +20,9 @@ Telegram text with an explicit `memo:`, `备忘：`, `lesson:`, or `todo:` prefi
 
 ## Hermes project metadata
 
-Registered Hermes Project: `obsidian-memo-capture` (`p_934c888e`). The primary
-folder is this canonical Git checkout. Runtime plugin and Skill entries are
-symlinks into this project; receipts remain under `$HERMES_HOME/runtime/`.
+The project is already registered with Hermes as `obsidian-memo-capture`.
+Runtime plugin and Skill entries are symlinks into this project; receipts remain
+under `$HERMES_HOME/runtime/`.
 
 ## Verification
 
