@@ -61,9 +61,14 @@ def _receipt_path(key: str) -> Path:
     return _runtime_dir() / "receipts" / f"{key}.json"
 
 
+def _body_sha256(body: str) -> str:
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
 def _read_receipt(key: str) -> dict[str, Any] | None:
+    path = _receipt_path(key)
     try:
-        return json.loads(_receipt_path(key).read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, OSError, ValueError):
         return None
 
@@ -86,10 +91,20 @@ def _write_receipt(key: str, data: dict[str, Any]) -> None:
             pass
 
 
+def _capture_is_reusable(existing: dict[str, Any] | None, folder: str, body: str) -> bool:
+    if not existing or existing.get("folder") != folder:
+        return False
+    if existing.get("body_sha256") != _body_sha256(body):
+        return False
+    capture = existing.get("capture") or {}
+    return bool(capture.get("ok") and capture.get("written") and capture.get("path"))
+
+
 def _capture(ctx, folder: str, body: str) -> dict[str, Any]:
     script = _hermes_home() / "skills" / "note-taking" / "obsidian-memos" / "scripts" / "capture_memo.py"
     process = subprocess.run(
-        [sys.executable, str(script), "--vault", str(_vault(ctx)), "--folder", folder, "--content", body],
+        [sys.executable, str(script), "--vault", str(_vault(ctx)),
+         "--folder", folder, "--content", body],
         capture_output=True, text=True, timeout=30, check=False,
     )
     try:
@@ -113,7 +128,10 @@ async def _evaluation(ctx, folder: str, body: str, path: str) -> str:
             messages=[
                 {"role": "system", "content": "你是简洁、克制的个人 memo 编辑。"},
                 {"role": "user", "content": prompt},
-            ], max_tokens=180, temperature=0.3, purpose="obsidian-memo-evaluation",
+            ],
+            max_tokens=180,
+            temperature=0.3,
+            purpose="obsidian-memo-evaluation",
         )
         text = (result.text or "").strip()
         if text:
@@ -123,7 +141,7 @@ async def _evaluation(ctx, folder: str, body: str, path: str) -> str:
     return f"已写入 Obsidian：{Path(path).name}\n评价暂未生成，但原文已安全保存。"
 
 
-async def _send_reply(gateway, event, response: str) -> dict[str, Any]:
+async def _send_reply(gateway, event, response: str):
     source = event.source
     adapter = gateway.adapters.get(source.platform) if gateway else None
     if adapter is None:
@@ -132,7 +150,10 @@ async def _send_reply(gateway, event, response: str) -> dict[str, Any]:
     if source.thread_id:
         metadata["thread_id"] = source.thread_id
     result = await adapter.send(
-        source.chat_id, response, reply_to=getattr(event, "message_id", None), metadata=metadata,
+        source.chat_id,
+        response,
+        reply_to=getattr(event, "message_id", None),
+        metadata=metadata,
     )
     return {
         "ok": bool(getattr(result, "success", False)),
@@ -146,25 +167,67 @@ async def _process_event(ctx, event, gateway, key: str, folder: str, body: str) 
     if existing and existing.get("reply", {}).get("ok"):
         LOGGER.info("Skipping already delivered memo receipt=%s", key)
         return
+
+    incoming_body_sha256 = _body_sha256(body)
+    if existing and existing.get("body_sha256") not in (None, incoming_body_sha256):
+        LOGGER.error(
+            "Memo receipt key conflict=%s existing_body_sha256=%s incoming_body_sha256=%s",
+            key,
+            existing.get("body_sha256"),
+            incoming_body_sha256,
+        )
+        return
+
     receipt: dict[str, Any] = {
-        "schema": 1, "key": key,
+        "schema": 1,
+        "key": key,
         "received_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "platform": "telegram", "chat_id": str(event.source.chat_id),
+        "platform": "telegram",
+        "chat_id": str(event.source.chat_id),
         "message_id": str(getattr(event, "message_id", "") or ""),
         "folder": folder,
-        "body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+        "body_sha256": incoming_body_sha256,
     }
-    result = await asyncio.to_thread(_capture, ctx, folder, body)
+    if existing:
+        receipt.update({k: v for k, v in existing.items() if k not in {"reply", "updated_at"}})
+
+    capture_reused = _capture_is_reusable(existing, folder, body)
+    if capture_reused:
+        assert existing is not None
+        previous_capture = existing.get("capture")
+        if not isinstance(previous_capture, dict):
+            previous_capture = {}
+        previous_path = str(previous_capture.get("path") or "")
+        result = {
+            "ok": True,
+            "written": True,
+            "path": previous_path,
+            "reused": True,
+        }
+        LOGGER.info("Reusing captured memo receipt=%s path=%s", key, previous_path)
+    else:
+        result = await asyncio.to_thread(_capture, ctx, folder, body)
     receipt["capture"] = {
-        "ok": bool(result.get("ok")), "written": bool(result.get("written")),
-        "path": result.get("path"), "error": result.get("error"),
+        "ok": bool(result.get("ok")),
+        "written": bool(result.get("written")),
+        "path": result.get("path"),
+        "error": result.get("error"),
+        "reused": capture_reused,
     }
+    receipt["status"] = "captured" if result.get("ok") and result.get("written") else "capture_failed"
+    receipt["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+    await asyncio.to_thread(_write_receipt, key, receipt)
+
     if not result.get("ok") or not result.get("written"):
         response = f"无法写入 Obsidian memo：{result.get('error', 'unknown_error')}"
     else:
         response = await _evaluation(ctx, folder, body, result["path"])
     receipt["response_chars"] = len(response)
     receipt["response_sha256"] = hashlib.sha256(response.encode("utf-8")).hexdigest()
+    receipt["status"] = "reply_pending"
+    receipt["updated_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+    await asyncio.to_thread(_write_receipt, key, receipt)
+
     reply = await _send_reply(gateway, event, response)
     receipt["reply"] = reply
     receipt["status"] = "delivered" if reply["ok"] else "reply_failed"

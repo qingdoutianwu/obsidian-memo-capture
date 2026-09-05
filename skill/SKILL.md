@@ -2,58 +2,75 @@
 name: obsidian-memos
 description: Capture memo, lesson, and todo text in Obsidian.
 version: 1.0.0
-author: qingdoutianwu, Hermes Agent
+author: LicHaoWei, Hermes Agent
 license: MIT
 platforms: [macos, linux, windows]
 metadata:
   hermes:
     tags: [Obsidian, memo, notes, capture]
-    related_skills: []
+    related_skills: [obsidian]
+    config:
+      - key: obsidian_memos.vault_path
+        description: Absolute path to the Obsidian vault used for memo capture.
+        default: "~/Documents/NOTE240925_clean1"
+        prompt: Obsidian vault path
 ---
 
 # Obsidian Memos
 
-Capture explicit `memo`, `lesson`, and `todo` messages in a local Obsidian vault. The original text is written first; evaluation is optional and must never block or rewrite the saved text.
+Use this skill when the user explicitly asks to save a `memo`, `lesson`, or `todo` from the current message into the local Obsidian vault. The original text is written locally first; a short evaluation is generated only after the write succeeds. Do not replace or rewrite the original memo.
 
 ## When to Use
 
 - `memo:` / `memo：` / `备忘：` / `记录：` → `OpenClaw远程笔记/memos/`
 - `lesson:` / `lesson：` / `教训：` → `OpenClaw远程笔记/lessons/`
 - `todo:` / `todo：` / `待办：` → `OpenClaw远程笔记/todos/`
+- A request such as “写入 memo” with an explicitly supplied memo body.
 
-Do not use for ordinary conversation, Hermes persistent memory, or OneDrive mirror maintenance.
+Do not use this skill for ordinary conversation, workspace memory, or OneDrive mirror maintenance.
 
 ## Prerequisites
 
-- A local Obsidian vault path.
-- Python standard library only for the bundled writer.
-- For automatic Telegram interception, enable the companion `obsidian-memo-capture` Hermes plugin.
+- The configured vault path must exist or be creatable.
+- The skill uses only the local filesystem and Python standard library.
+- The destination is `<vault>/OpenClaw远程笔记/<folder>/YYYYMMDD.md`.
 
-## Quick Reference
+## Behavior
+
+The enabled `obsidian-memo-capture` Hermes plugin intercepts explicit memo prefixes on Telegram before normal agent dispatch. It writes the original body, then sends a short evaluation back to the same Telegram chat. Non-Telegram messages and ordinary text pass through normally.
+
+## Manual Run
+
+Run the bundled writer through `terminal`:
 
 ```bash
-python3 scripts/capture_memo.py \
-  --vault "<vault>" --folder memos --content "原始内容"
+python3 ${HERMES_SKILL_DIR}/scripts/capture_memo.py \
+  --vault "<resolved vault path>" --folder memos --content "原始 memo 内容"
+```
 
-python3 scripts/capture_memo.py \
-  --vault "<vault>" --folder memos --content "测试内容" --dry-run
+For a no-write preview:
+
+```bash
+python3 ${HERMES_SKILL_DIR}/scripts/capture_memo.py \
+  --vault "<resolved vault path>" --folder memos --content "测试内容" --dry-run
 ```
 
 ## Procedure
 
-1. Remove only the explicit routing prefix; preserve the remaining body exactly.
-2. Append to `<vault>/OpenClaw远程笔记/<folder>/YYYYMMDD.md` under a file lock.
-3. Require the writer JSON to report `ok=true`, `written=true`, and a concrete path.
-4. If Telegram interception is enabled, the plugin sends a short evaluation to the same chat only after the write succeeds.
-5. Treat a prior `delivered` receipt for the same Telegram message key as already handled; do not write or reply again.
+1. Identify the explicit type prefix and remove only that routing prefix. Keep the remaining body unchanged.
+2. Resolve the configured vault path. Do not use `/root/obsidian-vault` or any `.openclaw` path on this Mac.
+3. The writer creates the destination and appends under an exclusive lock. Its JSON must contain `ok=true`, `written=true`, and a concrete `path`.
+4. Only after a successful write, generate a short Chinese evaluation: core idea, one strength, and at most one practical refinement.
+5. If evaluation fails, report that the original was saved; evaluation failure must not roll back or duplicate the memo.
 
 ## Pitfalls
 
-- Never use `/root/obsidian-vault` or an OpenClaw runtime path on macOS.
-- Never commit vault contents, Telegram credentials, `.env` files, receipts, or logs.
-- Evaluation failure does not invalidate a successful write.
-- Multiline Markdown and emoji are valid and remain unchanged.
+- Do not invoke the old OpenClaw Node scripts or `append_and_sync.sh`.
+- Do not put memo text in persistent Hermes memory unless explicitly requested.
+- Do not silently append the evaluation to the original memo.
+- Multiline content is valid and remains multiline.
+- The plugin intentionally handles only Telegram text messages with an explicit prefix.
 
 ## Verification
 
-Use the writer dry-run and a temporary vault for local tests. For live Telegram acceptance, confirm the target file contains one original entry and the receipt contains `capture.ok=true`, `capture.written=true`, `reply.ok=true`, and a reply `message_id`.
+A local run is accepted only when the JSON is successful and the returned path exists under the configured vault. Plugin status is checked with `hermes plugins list`; gateway status with `hermes gateway status`. Use a labeled test memo for live Telegram verification and inspect the resulting Obsidian file afterward.

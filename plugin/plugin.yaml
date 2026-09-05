@@ -1,5 +1,5 @@
 name: obsidian-memo-capture
 version: 1.0.0
-description: Capture Telegram memo messages into a local Obsidian vault and reply with a short evaluation.
+description: Capture memo messages into the local Obsidian vault and reply with a short evaluation.
 provides_hooks:
   - pre_gateway_dispatch

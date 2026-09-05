@@ -8,9 +8,9 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[1] / "skill" / "scripts" / "capture_memo.py"
 
 
-def run(vault: Path, *args: str) -> dict:
+def run(tmp_path: Path, *args: str) -> dict:
     process = subprocess.run(
-        [sys.executable, str(SCRIPT), "--vault", str(vault), *args],
+        [sys.executable, str(SCRIPT), "--vault", str(tmp_path), *args],
         capture_output=True,
         text=True,
         check=True,

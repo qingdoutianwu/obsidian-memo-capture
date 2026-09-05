@@ -14,7 +14,8 @@ The original memo is written deterministically before evaluation. Evaluation fai
 
 - `plugin/` — Hermes general plugin (`plugin.yaml` + `__init__.py`)
 - `skill/` — portable Hermes Skill (`SKILL.md` + `scripts/capture_memo.py`)
-- `tests/` — stdlib-only writer smoke tests
+- `tests/` — stdlib-only writer and plugin-helper smoke tests
+- `.github/workflows/ci.yml` — GitHub Actions validation workflow
 
 ## Install locally
 
